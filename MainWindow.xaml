@@ -1,0 +1,182 @@
+﻿<Window x:Class="AudioPlayer.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="音频播放器 By:Katelya" Height="600" Width="900"
+        Background="#FF2D2D30" WindowStartupLocation="CenterScreen"
+        AllowDrop="True" Drop="Window_Drop">
+
+    <Window.Resources>
+        <!-- 按钮样式 -->
+        <Style x:Key="ModernButton" TargetType="Button">
+            <Setter Property="Background" Value="#FF404040"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="10,5"/>
+            <Setter Property="Margin" Value="5"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" 
+                                CornerRadius="5">
+                            <ContentPresenter HorizontalAlignment="Center" 
+                                            VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#FF505050"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter Property="Background" Value="#FF303030"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- 滑块样式 -->
+        <Style x:Key="ModernSlider" TargetType="Slider">
+            <Setter Property="Background" Value="#FF404040"/>
+            <Setter Property="Foreground" Value="#FF00A0FF"/>
+            <Setter Property="Height" Value="20"/>
+        </Style>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="60"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="150"/>
+        </Grid.RowDefinitions>
+
+        <!-- 顶部菜单栏 -->
+        <Grid Grid.Row="0" Background="#FF1E1E1E">
+            <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="10">
+                <Button x:Name="btnOpenFile" Content="打开文件" Style="{StaticResource ModernButton}" Click="BtnOpenFile_Click"/>
+                <Button x:Name="btnOpenFolder" Content="打开文件夹" Style="{StaticResource ModernButton}" Click="BtnOpenFolder_Click"/>
+                <Button x:Name="btnClearPlaylist" Content="清空播放列表" Style="{StaticResource ModernButton}" Click="BtnClearPlaylist_Click"/>
+            </StackPanel>
+        </Grid>
+
+        <!-- 播放列表 -->
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="2*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- 播放列表 -->
+            <GroupBox Grid.Column="0" Header="播放列表" Foreground="White" Margin="10">
+                <ListBox x:Name="lstPlaylist" Background="#FF3C3C3C" Foreground="White" 
+                         SelectionChanged="LstPlaylist_SelectionChanged"
+                         MouseDoubleClick="LstPlaylist_MouseDoubleClick">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="{Binding FileName}" FontWeight="Bold" Margin="0,0,10,0"/>
+                                <TextBlock Text="{Binding Duration}" Foreground="Gray"/>
+                            </StackPanel>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+            </GroupBox>
+
+            <!-- 音频信息面板 -->
+            <GroupBox Grid.Column="1" Header="音频信息" Foreground="White" Margin="10">
+                <StackPanel Background="#FF3C3C3C">
+                    <TextBlock x:Name="txtCurrentFile" Text="未选择文件" Foreground="White" Margin="10" TextWrapping="Wrap"/>
+                    <TextBlock x:Name="txtFileInfo" Text="" Foreground="Gray" Margin="10" TextWrapping="Wrap"/>
+
+                    <!-- 均衡器 -->
+                    <GroupBox Header="简易均衡器" Foreground="White" Margin="5">
+                        <StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="5">
+                                <TextBlock Text="低音:" Foreground="White" Width="40"/>
+                                <Slider x:Name="sliderBass" Minimum="-10" Maximum="10" Value="0" 
+                                        Style="{StaticResource ModernSlider}" Width="100"
+                                        ValueChanged="SliderBass_ValueChanged"/>
+                                <TextBlock x:Name="txtBassValue" Text="0" Foreground="White" Width="30" Margin="5,0"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="5">
+                                <TextBlock Text="高音:" Foreground="White" Width="40"/>
+                                <Slider x:Name="sliderTreble" Minimum="-10" Maximum="10" Value="0" 
+                                        Style="{StaticResource ModernSlider}" Width="100"
+                                        ValueChanged="SliderTreble_ValueChanged"/>
+                                <TextBlock x:Name="txtTrebleValue" Text="0" Foreground="White" Width="30" Margin="5,0"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </GroupBox>
+                </StackPanel>
+            </GroupBox>
+        </Grid>
+
+        <!-- 播放控制面板 -->
+        <Grid Grid.Row="2" Background="#FF1E1E1E">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="40"/>
+                <RowDefinition Height="60"/>
+                <RowDefinition Height="50"/>
+            </Grid.RowDefinitions>
+
+            <!-- 进度条 -->
+            <StackPanel Grid.Row="0" Orientation="Horizontal" VerticalAlignment="Center" Margin="10">
+                <TextBlock x:Name="txtCurrentTime" Text="00:00" Foreground="White" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                <Slider x:Name="sliderPosition" Style="{StaticResource ModernSlider}" 
+                        Minimum="0" Maximum="100" Value="0" 
+                        Width="600" VerticalAlignment="Center"
+                        PreviewMouseDown="SliderPosition_PreviewMouseDown"
+                        PreviewMouseUp="SliderPosition_PreviewMouseUp"/>
+                <TextBlock x:Name="txtTotalTime" Text="00:00" Foreground="White" VerticalAlignment="Center" Margin="10,0,0,0"/>
+            </StackPanel>
+
+            <!-- 主要控制按钮 -->
+            <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                <Button x:Name="btnPrevious" Content="⏮" Style="{StaticResource ModernButton}" 
+                        FontSize="16" Width="50" Click="BtnPrevious_Click"/>
+                <Button x:Name="btnPlayPause" Content="▶" Style="{StaticResource ModernButton}" 
+                        FontSize="20" Width="60" Click="BtnPlayPause_Click"/>
+                <Button x:Name="btnStop" Content="⏹" Style="{StaticResource ModernButton}" 
+                        FontSize="16" Width="50" Click="BtnStop_Click"/>
+                <Button x:Name="btnNext" Content="⏭" Style="{StaticResource ModernButton}" 
+                        FontSize="16" Width="50" Click="BtnNext_Click"/>
+            </StackPanel>
+
+            <!-- 音量和播放速度控制 -->
+            <Grid Grid.Row="2">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- 音量控制 -->
+                <StackPanel Grid.Column="0" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <TextBlock Text="🔊" Foreground="White" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                    <Slider x:Name="sliderVolume" Style="{StaticResource ModernSlider}" 
+                            Minimum="0" Maximum="100" Value="50" Width="100"
+                            ValueChanged="SliderVolume_ValueChanged"/>
+                    <TextBlock x:Name="txtVolumeValue" Text="50%" Foreground="White" 
+                               VerticalAlignment="Center" Margin="10,0,0,0" Width="40"/>
+                </StackPanel>
+
+                <!-- 播放速度控制 -->
+                <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <TextBlock Text="速度:" Foreground="White" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                    <Slider x:Name="sliderSpeed" Style="{StaticResource ModernSlider}" 
+                            Minimum="0.25" Maximum="2.0" Value="1.0" Width="100"
+                            ValueChanged="SliderSpeed_ValueChanged"/>
+                    <TextBlock x:Name="txtSpeedValue" Text="1.0x" Foreground="White" 
+                               VerticalAlignment="Center" Margin="10,0,0,0" Width="40"/>
+                </StackPanel>
+
+                <!-- 播放模式 -->
+                <StackPanel Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <Button x:Name="btnPlayMode" Content="🔁" Style="{StaticResource ModernButton}" 
+                            ToolTip="播放模式" Click="BtnPlayMode_Click"/>
+                    <Button x:Name="btnShuffle" Content="🔀" Style="{StaticResource ModernButton}" 
+                            ToolTip="随机播放" Click="BtnShuffle_Click"/>
+                </StackPanel>
+            </Grid>
+        </Grid>
+    </Grid>
+</Window>
